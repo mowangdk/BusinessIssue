@@ -217,11 +217,12 @@ $(function() {
                 d:unitVal,
                 points:arrJson
             }
+            // var pathTitle = '最短路径为24cm';
             // iniChart(currentHeigh,currentWidth,currentX,currentY,1,newArr,false,pathTitle,true);
             // $(".short-path").html('23cm');
             // fillListHtml(newArr);
             // $(this).addClass("done");
-            // var pathTitle = '最短路径为24cm';
+
             if(dotArr.length){
                 if(dotArr.length<3){
                     alert('请选中三个点以上');

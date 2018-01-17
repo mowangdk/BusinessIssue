@@ -12,8 +12,8 @@
             style:{fontFamily:"'Unica One', sans-serif"},
             plotBorderColor:"#606063"
         },
-        title:{style:{color:"#E0E0E3",textTransform:"uppercase",fontSize:"20px"}},
-        subtitle:{style:{color:"#E0E0E3",textTransform:"uppercase"}},
+        title:{style:{color:"#E0E0E3",textTransform:"lowercase",fontSize:"16px"}},
+        subtitle:{style:{color:"#E0E0E3",textTransform:"lowercase"}},
         xAxis:{
             gridLineColor:"#707073",
             labels:{style:{color:"#E0E0E3"}},
