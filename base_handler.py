@@ -5,6 +5,7 @@ import json
 import logging
 from tornado.web import RequestHandler
 from tsp import tsp_dp
+from tornado.web import HTTPError
 
 
 class BaseHandler(RequestHandler):
@@ -14,12 +15,17 @@ class BaseHandler(RequestHandler):
 
 class CalculateHandler(RequestHandler):
     def post(self):
-        points = json.loads(self.get_arguments('points')[0])
+        points = json.loads(self.get_argument('points'))
         d = int(self.get_argument('d'))
         unit = self.get_argument('unit')
-        shortest_distance, route = tsp_dp(points, d)
+        restriction = json.loads(self.get_argument('restriction', '[]'))
+        restriction = [[[2, 2], [2, 3]], [[2, 2], [2, 4]], [[2, 3], [2, 4]]]
+        try:
+            shortest_distance, route = tsp_dp(points, d, restriction)
+        except ValueError:
+            raise HTTPError(400, 'No available routes because too many restrictions!')
         shortest_distance = '%.2f' % (shortest_distance) + ' ' + unit
-        data = dict(shortest_distance=shortest_distance, route=route)
+        data = dict(shortest_distance=shortest_distance, route=route, restriction=restriction)
         self.write(data)
         self.finish()
 

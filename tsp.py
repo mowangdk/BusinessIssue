@@ -11,20 +11,37 @@ def distance(point, other):
     return math.sqrt((point[0] - other[0]) ** 2 + (point[1] - other[1]) ** 2)
 
 
-def get_distances(points):
+def parse_restriction(restriction, points):
+    index_dict = dict()
+    for index, point in enumerate(points):
+        index_dict[tuple(point)] = index
+    new_restriction = set()
+    for single_restriction in restriction:
+        try:
+            i = index_dict[tuple(single_restriction[0])]
+            j = index_dict[tuple(single_restriction[1])]
+            new_restriction.add((i, j))
+            new_restriction.add((j, i))
+        except KeyError:
+            logging.info('Cannot find point in restriction: %s' % (single_restriction))
+    return new_restriction
+
+
+def get_distances(points, restriction):
     n = len(points)
     distances = [[0] * n for _ in range(n)]
+    restriction = parse_restriction(restriction, points)
     for i in range(n):
         for j in range(n):
-            if i != j:
+            if i != j and (i, j) not in restriction:
                 distances[i][j] = distance(points[i], points[j])
             else:
                 distances[i][j] = float('inf')
     return distances
 
 
-def tsp_dp(points, d):
-    distances = get_distances(points)
+def tsp_dp(points, d, restriction):
+    distances = get_distances(points, restriction)
     m = len(points)
     n = 2 ** (m-1)
     dp = [[float('inf')] * n for _ in range(m)]
@@ -81,9 +98,3 @@ def tsp_greedy(points, d):
             minimum = walked
             res_route = final_route
     return minimum * d, map(lambda x: points[x], res_route)
-
-points = ((0,0),(0,1),(1,0),(1,1), (2,1), (2,0))
-
-
-
-
