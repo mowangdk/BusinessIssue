@@ -19,7 +19,6 @@ class CalculateHandler(RequestHandler):
         d = int(self.get_argument('d'))
         unit = self.get_argument('unit')
         restriction = json.loads(self.get_argument('restriction', '[]'))
-        restriction = [[[2, 2], [2, 3]], [[2, 2], [2, 4]], [[2, 3], [2, 4]]]
         try:
             shortest_distance, route = tsp_dp(points, d, restriction)
         except ValueError:
