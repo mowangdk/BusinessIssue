@@ -1,0 +1,458 @@
+<html>
+<head>
+    <title>
+
+    </title>
+    <style>
+
+        .header_box {
+            margin-top: 40px;
+            text-align: center;
+        }
+        .header_box input{
+            width:60px;
+            height:30px;
+            border: 1px solid #666;
+            margin-left: 8px;
+        }
+        .header_box span{
+            margin-left: 8px;
+        }
+        .header_box select{
+            width:60px;
+            height:30px;
+            margin-left: 8px;
+            color:#444;
+            font-size: 16px;
+        }
+        .header_box button{
+            width:60px;
+            height:30px;
+            margin-left: 8px;
+            color:#fff;
+            border-radius: 4px;
+            background-color: #444;
+            border: 0;
+            cursor: pointer;
+        }
+        .header_box button:hover,.footer_box button:hover{
+            background-color: #000;
+        }
+        .canvas_background{
+            width:660px;
+            height:660px;
+            background-color: #333;
+            margin: 40px auto;
+            position: relative;
+        }
+        .footer_box{
+            text-align: center;
+        }
+        .footer_box button{
+            width:80px;
+            height:30px;
+            margin-left: 8px;
+            color:#fff;
+            border-radius: 4px;
+            background-color: #444;
+            border: 0;
+            cursor: pointer;
+        }
+        .number{
+            width:9px;
+            height:9px;
+            color:#fff;
+            position: absolute;
+            z-index: 10009;
+            left:0;
+            top:0;
+            font-size: 12px;
+        }
+        .point{
+            position: absolute;
+            left:0;
+            top:0;
+            width:9px;
+            height:9px;
+            background-color: #ff0000;
+            border-radius: 9px;
+            cursor: pointer;
+            display:block;
+            z-index: 1003;
+        }
+        .point:hover{
+            width:10px;
+            height:10px;
+            box-shadow: 0 0 20px #FF2D2D;
+        }
+        .line{
+            position: absolute;
+            left:0;
+            top:0;
+            background-color: #ffff00;
+            width:0px;
+            height:0px;
+            border: 1px solid #ffff00;
+            transform-origin:0% 0%;/*定义动画的旋转中心点*/
+        }
+        .line:hover{
+            border: 1.5px solid #ffff00;
+            box-shadow: 0 0 20px #ffff00;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="rect" id="rect"></div>
+<div class="header_box">
+    <span>网格大小：</span><input type="text" id="grid_rows" value="9"><span>行</span><input type="text" id="grid_cols" value="9"><span>列</span>
+    <span>单位长度:</span><input type="text" value="60" id="d_size">
+    <select id="selector">
+        <option>cm</option>
+        <option>m</option>
+    </select>
+    <button id="size_btn">确定</button>
+</div>
+<div class="canvas_background" id="canvas_background" ondragstart="return false" oncontextmenu="doNothing()">
+    <canvas id="canvas_grid">
+
+    </canvas>
+    <div id="temp_line" class="line"></div>
+</div>
+<div class="footer_box">
+    <button id="reset_btn">重置</button>
+    <button id="excute_btn">计算</button>
+    <button id="export_btn">导出</button>
+</div>
+</body>
+<script src="../static/jquery-1.8.3.min.js"></script>
+<script src="../static/ui_frame.js"></script>
+<script>
+    //600
+    var unit = 'cm';
+    var canvasGridWidth = 600;
+    var canvasWidth = 660;
+    var canvasHeight = 660;
+    var points_list = [];
+    var lines_list = [];
+    var map = {};
+    var line_map = {};
+    var drawing = false;
+    var start_mouse_left = 0;
+    var start_mouse_top = 0;
+    var end_mouse_left = 0;
+    var end_mouse_top = 0;
+    var start_point = null;
+    var end_point = null;
+
+
+    var click_time_1 = 0;
+    var click_time_2 = 0;
+
+    $('#canvas_grid').attr('width',canvasWidth);
+    $('#canvas_grid').attr('height',canvasHeight);
+    var ctx=$('#canvas_grid')[0].getContext("2d");
+    var imgData=ctx.createImageData(canvasWidth,canvasHeight);
+
+    for(var i=0;i<canvasHeight;i++)
+    {
+        for(var j=0;j<canvasWidth;j++)
+        {
+            var x = i*4*canvasWidth + j*4;
+            imgData.data[x] = 80;
+            imgData.data[x+1] = 80;
+            imgData.data[x+2] = 80;
+            imgData.data[x+3]= 255;
+        }
+    }
+    ctx.putImageData(imgData,0,0);
+    drawGrid(9,9);
+    $('#selector').change(function(){
+        unit = $(this).val();
+    })
+    $('#size_btn').on('click',function(){
+        ctx.clearRect(0,0,canvasWidth,canvasHeight);
+        var rows = parseInt($('#grid_rows').val());
+        var cols = parseInt($('#grid_cols').val());
+        points_list = [];
+        drawGrid(rows,cols);
+    })
+    $('#excute_btn').on('click',function (evt) {
+        var m_points = [];
+        var k = 0;
+        for(var i in points_list){
+            var _id = points_list[i].x + '_' + points_list[i].y;
+            if( map[_id] == 1)
+                m_points[k++] = [points_list[i].x,points_list[i].y];
+        }
+        var m_lines = [];
+        k=0;
+        for(var i in lines_list){
+
+            var start = [lines_list[i].start.x,lines_list[i].start.y];
+            var end = [lines_list[i].end.x,lines_list[i].end.y];
+            var _id = lines_list[i].start.x + '_' + lines_list[i].start.y + '_' + lines_list[i].end.x + '_' + lines_list[i].end.y;
+            console.log(_id);
+            if(line_map[_id] == 1 )
+                m_lines[k++] = [start,end];
+        }
+
+        var postData={
+            'points':JSON.stringify(m_points),
+            'd':$('#d_size').val(),
+            'unit':unit,
+            'restriction':JSON.stringify(m_lines)
+        }
+        console.log(JSON.stringify(postData));
+        $.window.http.post('/acquire_route',postData,function(data){
+            console.log(data);
+        })
+    })
+
+    function drawGrid(rows,cols){
+        var val = 0;
+        if(rows > cols){
+            val = canvasGridWidth*1.0/(rows-1);
+        }else{
+            val = canvasGridWidth*1.0/(cols-1);
+        }
+
+        var left = 30;
+        var right = left+(cols-1)*val;
+        var top = 30;
+        var bottom = top+(rows-1)*val;
+        for(var i=0;i<rows;i++){
+            var x1 = parseInt(left);
+            var y1 = parseInt(top+i*val);
+            var x2 = parseInt(right);
+            var y2 = parseInt(top+i*val);
+            drawLine(x1,y1,x2,y2);
+            if((rows-i)!=1){
+                var sid = 'y_'+(i+1);
+                $('#canvas_background').append('<div class="number" id="'+sid+'">'+(rows-i)+'</div>');
+                drawNumberEx($('#'+sid),left-15,top+i*val-5);
+            }
+        }
+        for(var j=0;j<cols;j++){
+            var x1 = parseInt(left+j*val);
+            var y1 = parseInt(top);
+            var x2 = parseInt(left+j*val);
+            var y2 = parseInt(bottom);
+            drawLine(x1,y1,x2,y2);
+            var sid = 'x_'+(j+1);
+            $('#canvas_background').append('<div class="number" id="'+sid+'">'+(j+1)+'</div>');
+            drawNumberEx($('#'+sid),left+j*val-4,bottom+5);
+        }
+        drawGridPoints(rows,cols,val);
+    }
+    function drawGridPoints(rows,cols,val){
+        var left = 30;
+        var top = 30;
+        for(var i=0;i<rows;i++)
+        {
+            for(var j=0;j<cols;j++){
+                var _left = left + j*val;
+                var _top = top + i*val;
+                points_list.push({
+                    'left':_left,
+                    'top':_top,
+                    'x':(j+1),
+                    'y':(rows-i)
+                })
+            }
+        }
+    }
+    $('#canvas_background').mousedown(function(event){
+        if(event.button != 0){
+            return;
+        }
+        var _left = event.pageX - $('#canvas_background').offset().left;
+        var _top = event.pageY - $('#canvas_background').offset().top;
+        var result = judgePoint(_left,_top);
+        var pos = result['pos'];
+        start_point = pos;
+        drawing = true;
+        //-----------------------------------------------------------
+        if(result.status == false){ //画点
+            console.log(pos.x,pos.y);
+            var _id = pos.x+'_'+ pos.y;
+            if(pos.left <=0 || pos.top <=0){
+                return;
+            }
+            $(this).append('<div id="'+_id+'" class="point"></div>');
+            drawPointEx($('#'+_id),pos.left,pos.top);
+            map[_id] = 1;
+            console.log('画点',pos.x,pos.y);
+        }else{ //画线
+
+            drawing = true;
+            start_mouse_left = pos.left;
+            start_mouse_top = pos.top;
+            $('#temp_line').css({'display':'block','width':'0px'});
+            console.log('开始画线',pos.left,pos.top)
+        }
+        document.onselectstart = function () { return false; }
+    })
+
+    $('#canvas_background').mousemove(function(event){
+        console.log(drawing);
+        if(drawing == true){
+            end_mouse_left = event.pageX - $('#canvas_background').offset().left;
+            end_mouse_top = event.pageY - $('#canvas_background').offset().top;
+            drawLineEx($('#temp_line'),start_mouse_left,start_mouse_top,end_mouse_left,end_mouse_top);
+        }
+    })
+    $('#canvas_background').mouseup(function(event){
+
+        var end_mouse_left = event.pageX - $('#canvas_background').offset().left;
+        var end_mouse_top = event.pageY - $('#canvas_background').offset().top;
+        var result = judgePoint(end_mouse_left,end_mouse_top);
+        var pos = result['pos'];
+        end_point = pos;
+
+        if(drawing){
+            if(result.status == true){
+                var _id = start_point.x+'_'+start_point.y + '_' + end_point.x + '_' +end_point.y;
+                if(start_point.x == end_point.x && start_point.y == end_point.y) //同一个点则为无效线段
+                {
+
+                }else{
+                    if(line_map[_id] != 1){  //添加线段
+                        $('#canvas_background').append('<div id="'+_id+'" class="line"></div>');
+                        drawLineEx($('#'+_id),start_point.left,start_point.top ,end_point.left,end_point.top);
+                        line_map[_id] = 1;
+                        lines_list.push({
+                            'start':{
+                                'x':start_point.x,
+                                'y':start_point.y
+                            },
+                            'end':{
+                                'x':end_point.x,
+                                'y':end_point.y
+                            }
+                        })
+                        console.log('线段：','('+start_point.x+','+start_point.y + ')(' + end_point.x + ',' +end_point.y+')');
+                    }
+                    else{
+                        console.log('直线已经存在');
+                    }
+                }
+            }
+            $('#temp_line').css({'display':'none','width':'0px'});
+        }
+        drawing = false;
+        document.onselectstart=null;
+    })
+    $('#canvas_background').on('mousedown','.point',function (event) {
+        if(event.button == 2){   //mouse right
+            for(var i in lines_list){
+                var start_pos = lines_list[i].start;
+                var end_pos = lines_list[i].end;
+                var _id1 = start_pos.x + '_' + start_pos.y;
+                var _id2 = end_pos.x + '_' + end_pos.y;
+                var _id = _id1+'_'+_id2;
+                console.log(_id1,_id2,_id);
+                if($(this).attr('id') == _id1 || $(this).attr('id') == _id2){
+                    line_map[_id] = 0;
+                    $('#'+_id).remove();
+                }
+            }
+            map[$(this).attr('id')] = 0;
+            $(this).remove();
+        }
+    })
+    $('#canvas_background').on('mousedown','.line',function (event) {
+        console.log(event.button);
+        if(event.button == 2){   //mouse right
+            line_map[$(this).attr('id')] = 0;
+            $(this).remove();
+        }
+    })
+    function judgePoint(mouse_left,mouse_top){
+        var _left = mouse_left;
+        var _top = mouse_top;
+        var esp = 14;
+        var result = {'status':false,'pos':{'left':0,'top':0,'x':0,'y':0},'id':'null'};
+        for(var i=0;i<points_list.length;i++){
+            var pos = points_list[i];
+            var _id = pos.x+'_'+pos.y;
+            if(_left > pos.left-esp && _left < pos.left+esp && _top > pos.top-esp && _top < pos.top + esp){
+                if(map[_id] == 1){
+                    result['status'] = true;
+                    result['id'] = _id;
+                }else{
+                    result['id'] = null;
+                }
+                result['pos'] = pos;
+            }
+        }
+        return result;
+    }
+    function drawCircle(x1,y1){
+        ctx.beginPath();
+        ctx.arc(x1,y1,5,0,2*Math.PI,true);
+        ctx.fillStyle = '#ff0000';
+        ctx.strokeStyle = '#ff0000';
+        ctx.fill();
+        ctx.closePath();
+        ctx.stroke();
+    }
+    function drawLine(x1,y1,x2,y2){
+        ctx.beginPath();
+        ctx.strokeStyle= '#888';
+        ctx.lineWidth = 1;
+        ctx.moveTo(x1+0.5,y1+0.5);
+        ctx.lineTo(x2+0.5,y2+0.5);
+        ctx.closePath();
+        ctx.stroke();
+    }
+    function drawNumberEx(ele,x1,y1){
+        ele.css({
+            'left':x1+'px',
+            'top':y1+'px'
+        })
+    }
+    function drawPointEx(ele,x1,y1){
+        ele.css({
+            'left':(x1-4)+'px',
+            'top':(y1-4)+'px'
+        })
+    }
+    function drawLineEx(ele,x1,y1,x2,y2){
+        var radius = Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+        var angle = 0;
+        var x0 = x2 - x1;
+        var y0 = y2 - y1;
+        if(x0 >= 0 && y0 >= 0){
+            angle = Math.asin(y0/radius)*180.0/Math.PI;  //第四象限
+        }
+        else if(x0 <= 0 && y0 >=0){
+            angle = Math.asin(y0/radius)*180.0/Math.PI;  //第3象限
+            angle = 180 - angle;
+        }else if(x0 >= 0 && y0 < 0){
+            angle = Math.asin(y0/radius)*180.0/Math.PI;  //第1象限
+        }else if(x0 <= 0 && y0 < 0){
+            angle = Math.asin(y0/radius)*180.0/Math.PI;  //第2象限
+            angle = -angle + 180;
+        }
+        ele.css({
+            'left':(x1+1)+'px',
+            'top':(y1+1)+'px',
+            'width':radius+'px',
+            'transform':'rotate('+angle+'deg)'
+        })
+    }
+    $('#export_btn').click(function(){
+        saveAsLocalImage();
+    })
+    function saveAsLocalImage () {
+        var myCanvas = document.getElementById('canvas_grid');
+        var image = myCanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+        window.location.href=image;
+    }
+    function doNothing(){
+        window.event.returnValue=false;
+        return false;
+    }
+</script>
+</html>
