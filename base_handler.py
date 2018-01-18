@@ -10,7 +10,7 @@ from tornado.web import HTTPError
 
 class BaseHandler(RequestHandler):
     def get(self):
-        self.render('shortestPath.html')
+        self.render('drawPoints.html')
 
 
 class CalculateHandler(RequestHandler):
@@ -19,12 +19,18 @@ class CalculateHandler(RequestHandler):
         d = int(self.get_argument('d'))
         unit = self.get_argument('unit')
         restriction = json.loads(self.get_argument('restriction', '[]'))
+        logging.info('got restrictions: %s' % restriction)
+        status = 0
+        msg = ''
         try:
             shortest_distance, route = tsp_dp(points, d, restriction)
         except ValueError:
-            raise HTTPError(400, 'No available routes because too many restrictions!')
+            status = 1
+            msg = 'No available routes because too many restrictions!'
+            shortest_distance = 0
+            route = []
         shortest_distance = '%.2f' % (shortest_distance) + ' ' + unit
-        data = dict(shortest_distance=shortest_distance, route=route, restriction=restriction)
+        data = dict(shortest_distance=shortest_distance, route=route, restriction=restriction, status=status, msg=msg)
         self.write(data)
         self.finish()
 
