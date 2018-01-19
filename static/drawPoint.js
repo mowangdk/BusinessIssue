@@ -34,11 +34,12 @@ var start_point = null;
 var end_point = null;
 var pVal = 0;
 var isEdit = true;
-
+/*
 $('#canvas_grid').css({
     'width':canvasWidth+'px',
     'height':canvasHeight+'px'
 });
+*/
 function init(){
     points_list = [];
     lines_list = [];
@@ -71,7 +72,7 @@ function drawGrid(rows,cols){
     pVal = val;
     var left = 30;
     var right = left+(cols-1)*val;
-    var top = 30;
+    var top = 50;
     var bottom = top+(rows-1)*val;
     for(var i=0;i<rows;i++){
         $('#canvas_background').append('<div class="grid_line" id="'+grid_id+'"></div>');
@@ -95,7 +96,7 @@ function drawGrid(rows,cols){
 }
 function drawGridPoints(rows,cols,val){
     var left = 30;
-    var top = 30;
+    var top = 50;
     for(var i=0;i<rows;i++)
     {
         for(var j=0;j<cols;j++){
@@ -126,10 +127,12 @@ $('#size_btn').on('click',function(){
     }
 
     isEdit = true;
+    clearLog();
     drawGrid(rows,cols);
 })
 $('#reset_btn').on('click',function(){
     isEdit = true;
+    clearLog();
     $('#size_btn').click();
 })
 $('#excute_btn').on('click',function (evt) {
@@ -234,7 +237,7 @@ $('#canvas_background').mousedown(function(event){
         log('请重置','error');
         return;
     }
-    if(event.button != 0){
+    if(event.button != 0){  //不是鼠标左键
         return;
     }
     var _left = event.pageX - $('#canvas_background').offset().left;
@@ -331,6 +334,11 @@ $('#canvas_background').mouseup(function(event){
     document.onselectstart=null;
 })
 $('#canvas_background').on('mousedown','.point',function (event) {
+    if(!isEdit){
+        log('请重置','error');
+        event.stopPropagation();
+        return;
+    }
     if(event.button == 2){   //mouse right
         for(var i in lines_list){
             var start_pos = lines_list[i].start;
@@ -346,15 +354,24 @@ $('#canvas_background').on('mousedown','.point',function (event) {
         }
         map[$(this).attr('id')] = 0;
         $(this).remove();
-        log('删除点'+$(this).attr('id'));
+        var m_id = $(this).attr('id');
+        var ps = m_id.split('_');
+        log('删除点:( '+ ps[0] + ' , '+ps[1]+' )');
     }
 })
 $('#canvas_background').on('mousedown','.line',function (event) {
+    if(!isEdit){
+        log('请重置','error');
+        event.stopPropagation();
+        return;
+    }
     console.log(event.button);
     if(event.button == 2){   //mouse right
         line_map[$(this).attr('id')] = 0;
         $(this).remove();
-        log('删除线段'+$(this).attr('id'));
+        var m_id = $(this).attr('id');
+        var ps = m_id.split('_');
+        log('删除线段:('+ps[0] + ' , '+ps[1]+' )<->( '+ps[2]+' , '+ps[3]+' )');
     }
 })
 function judgePoint(mouse_left,mouse_top){
@@ -457,6 +474,9 @@ function log(msg,flag){
     else
         $('#console').append('<div><span style="color:#00DB00;font-size: 13px;">success: </span>'+msg+'</div>');
     $('#console').scrollTop( $('#console')[0].scrollHeight );
+}
+function clearLog(){
+    $('#console').html('');
 }
 function checkNumber(str){
     var reg=/^[0-9]*$/;
