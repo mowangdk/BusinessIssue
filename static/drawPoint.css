@@ -54,6 +54,7 @@
     height:660px;
     position: relative;
     background-color: #333;
+    overflow: hidden;
 }
 .footer_box{
     margin-top: 20px;
@@ -136,6 +137,10 @@
     border: 1.5px solid #ff0000;
     box-shadow: 0 0 20px #ff0000;
 
+}
+.temp_line{
+    left:-10px;
+    top:-10px;
 }
 .y_line{
     background-color: #ffff00;
