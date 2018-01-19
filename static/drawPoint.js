@@ -33,6 +33,7 @@ var end_mouse_top = 0;
 var start_point = null;
 var end_point = null;
 var pVal = 0;
+var isEdit = true;
 
 $('#canvas_grid').css({
     'width':canvasWidth+'px',
@@ -54,6 +55,7 @@ function init(){
     $('#canvas_background').find('.line').remove();
     $('#canvas_background').find('.point').remove();
     $('#canvas_background').find('.grid_line').remove();
+    $('#canvas_background').find('.y_line').remove();
 }
 drawGrid(9,9); //初始化 9*9
 function drawGrid(rows,cols){
@@ -116,6 +118,7 @@ $('#size_btn').on('click',function(){
     drawGrid(rows,cols);
 })
 $('#reset_btn').on('click',function(){
+    isEdit = true;
     $('#size_btn').click();
 })
 $('#excute_btn').on('click',function (evt) {
@@ -147,9 +150,8 @@ $('#excute_btn').on('click',function (evt) {
     $.window.http.post('/acquire_route',postData,function(data){
         console.log(data);
         var rout_id = 0;
-        $('#size_btn').click();
-
         if(data.status == 0){
+            $('#size_btn').click();
             var restriction = data.restriction;
             for(var i in restriction){
                 var line = restriction[i];
@@ -200,13 +202,22 @@ $('#excute_btn').on('click',function (evt) {
                 drawLineEx($('#fal_'+rout_id),start.left,start.top,end.left,end.top);
                 rout_id++;
             }
-            $('#canvas_background').attr('disabled','false');
+            //$('#canvas_background').attr('disabled','false');
+            $('#canvas_background').removeAttr("disabled"); //移除disabled属性
+            isEdit = false;
+        }
+        else{
+            log(data.msg,'error');
         }
     })
 })
 
 
 $('#canvas_background').mousedown(function(event){
+    if(!isEdit){
+        log('请重置','error');
+        return;
+    }
     if(event.button != 0){
         return;
     }
@@ -239,7 +250,7 @@ $('#canvas_background').mousedown(function(event){
 })
 
 $('#canvas_background').mousemove(function(event){
-
+    if(!isEdit)return;
     if(drawing == true){
         end_mouse_left = event.pageX - $('#canvas_background').offset().left;
         end_mouse_top = event.pageY - $('#canvas_background').offset().top;
@@ -247,7 +258,7 @@ $('#canvas_background').mousemove(function(event){
     }
 })
 $('#canvas_background').mouseup(function(event){
-
+    if(!isEdit)return;
     var end_mouse_left = event.pageX - $('#canvas_background').offset().left;
     var end_mouse_top = event.pageY - $('#canvas_background').offset().top;
     var result = judgePoint(end_mouse_left,end_mouse_top);
