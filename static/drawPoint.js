@@ -425,4 +425,5 @@ function log(msg,flag){
         $('#console').append('<div><span style="color:#ff0000;font-size: 13px;">warning: </span>'+msg+'</div>');
     else
         $('#console').append('<div><span style="color:#00DB00;font-size: 13px;">success: </span>'+msg+'</div>');
+    $('#console').scrollTop( $('#console')[0].scrollHeight );
 }
