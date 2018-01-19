@@ -98,7 +98,7 @@
     border-radius: 9px;
     cursor: pointer;
     display:block;
-    z-index: 1003;
+    z-index: 2007;
 }
 .point:hover{
     width:13px;
