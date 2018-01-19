@@ -393,7 +393,7 @@ function drawLineEx(ele,x1,y1,x2,y2){
         angle = -angle + 180;
     }
     ele.css({
-        'left':(x1)+'px',
+        'left':(x1+1)+'px',
         'top':(y1)+'px',
         'width':radius+'px',
         'transform':'rotate('+angle+'deg)'
