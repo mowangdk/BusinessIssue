@@ -92,17 +92,21 @@
     position: absolute;
     left:0;
     top:0;
-    width:11px;
-    height:11px;
+    width:13px;
+    height:13px;
+    text-align: center;
+    line-height:11px;
     background-color: #ff0000;
     border-radius: 9px;
     cursor: pointer;
     display:block;
     z-index: 2007;
+    color:#fff;
+    font-size: 12px;
 }
 .point:hover{
-    width:13px;
-    height:13px;
+    width:15px;
+    height:15px;
     box-shadow: 0 0 15px #FF2D2D;
 }
 .temp_line,.line,.y_line{

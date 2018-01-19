@@ -181,7 +181,8 @@ $('#excute_btn').on('click',function (evt) {
             }
             var route = data.route;
             var final_routs = [];
-            for(var i in route){
+            for(var i=0;i<route.length-1;i++){
+                
                 var dot = route[i];
                 var pos_left;
                 var pos_top;
@@ -193,7 +194,7 @@ $('#excute_btn').on('click',function (evt) {
                     }
                 }
                 final_routs.push({'left':pos_left,'top':pos_top});
-                $('#canvas_background').append('<div class="point" id="fal_'+rout_id+'"></div>');
+                $('#canvas_background').append('<div class="point" id="fal_'+rout_id+'">'+(parseInt(i)+1)+'</div>');
                 drawPointEx($('#fal_'+rout_id),pos_left,pos_top);
                 rout_id++;
             }
@@ -374,8 +375,8 @@ function drawNumberEx(ele,x1,y1){
 }
 function drawPointEx(ele,x1,y1){
     ele.css({
-        'left':(x1-5)+'px',
-        'top':(y1-5)+'px'
+        'left':(x1-6)+'px',
+        'top':(y1-6)+'px'
     })
 }
 function drawLineEx(ele,x1,y1,x2,y2){
