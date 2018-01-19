@@ -79,6 +79,17 @@
     top:0;
     font-size: 12px;
 }
+.point_number{
+    width:13px;
+    height:13px;
+    color:#ff0000;
+    position: absolute;
+    z-index: 2008;
+    left:-10px;
+    top:-10px;
+    font-weight: bolder;
+    font-size: 13px;
+}
 .grid_line{
     position: absolute;
     background-color:#999;
@@ -207,4 +218,14 @@
     color:#fff;
     font-size: 12px;
     padding: 10px;
+}
+.short_value{
+    position: absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:20px;
+    line-height: 20px;
+    text-align: center;
+    color:#fff;
 }

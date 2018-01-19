@@ -115,6 +115,15 @@ $('#selector').change(function(){
 $('#size_btn').on('click',function(){
     var rows = parseInt($('#grid_rows').val());
     var cols = parseInt($('#grid_cols').val());
+    if(!checkNumber(rows) || !checkNumber(cols)){
+        log('行数和列数必须为数字','error');
+        return;
+    }
+    if(rows>30 || cols>30 || rows<3 || cols<3){
+        log('行数和列数范围是 [3,30]','error');
+        return;
+    }
+
     isEdit = true;
     drawGrid(rows,cols);
 })
@@ -150,6 +159,7 @@ $('#excute_btn').on('click',function (evt) {
     console.log(JSON.stringify(postData));
     $.window.http.post('/acquire_route',postData,function(data){
         console.log(data);
+        $('#canvas_background').append('<div class="short_value">最短路径长度为：'+data.shortest_distance +'</div>');
         var rout_id = 0;
         if(data.status == 0){
             var rows = parseInt($('#grid_rows').val());
@@ -182,7 +192,7 @@ $('#excute_btn').on('click',function (evt) {
             var route = data.route;
             var final_routs = [];
             for(var i=0;i<route.length-1;i++){
-                
+
                 var dot = route[i];
                 var pos_left;
                 var pos_top;
@@ -194,7 +204,7 @@ $('#excute_btn').on('click',function (evt) {
                     }
                 }
                 final_routs.push({'left':pos_left,'top':pos_top});
-                $('#canvas_background').append('<div class="point" id="fal_'+rout_id+'">'+(parseInt(i)+1)+'</div>');
+                $('#canvas_background').append('<div class="point" id="fal_'+rout_id+'"><div class="point_number">'+(parseInt(i)+1)+'</div></div>');
                 drawPointEx($('#fal_'+rout_id),pos_left,pos_top);
                 rout_id++;
             }
@@ -207,7 +217,7 @@ $('#excute_btn').on('click',function (evt) {
                 rout_id++;
             }
             //$('#canvas_background').attr('disabled','false');
-            $('#canvas_background').removeAttr("disabled"); //移除disabled属性
+            //$('#canvas_background').removeAttr("disabled"); //移除disabled属性
             isEdit = false;
         }
         else{
@@ -232,16 +242,29 @@ $('#canvas_background').mousedown(function(event){
     start_point = pos;
 
     if(result.status == false){ //画点
-        console.log(pos.x,pos.y);
-        var _id = pos.x+'_'+ pos.y;
-        if(pos.left <=0 || pos.top <=0){
-            return;
+        //超过20个点不让添加
+        var point_num = 0;
+        for(var i in points_list){
+            var _id = points_list[i].x + '_' + points_list[i].y;
+            if( map[_id] == 1)
+                point_num++;
         }
-        $(this).append('<div id="'+_id+'" class="point"></div>');
-        drawPointEx($('#'+_id),pos.left,pos.top);
-        map[_id] = 1;
-        console.log('画点',pos.x,pos.y);
-        log('创建点：( '+pos.x+' , '+pos.y+' )');
+        if(point_num>=20) {
+            log('不能超过20个点','error');
+        }
+        else{
+            console.log(pos.x,pos.y);
+            var _id = pos.x+'_'+ pos.y;
+            if(pos.left <=0 || pos.top <=0){
+                return;
+            }
+            $(this).append('<div id="'+_id+'" class="point"></div>');
+            drawPointEx($('#'+_id),pos.left,pos.top);
+            map[_id] = 1;
+            console.log('画点',pos.x,pos.y);
+            log('创建点：( '+pos.x+' , '+pos.y+' )');
+        }
+
     }else{ //画线
         drawing = true;
         start_mouse_left = pos.left;
@@ -321,6 +344,7 @@ $('#canvas_background').on('mousedown','.point',function (event) {
         }
         map[$(this).attr('id')] = 0;
         $(this).remove();
+        log('删除点'+$(this).attr('id'));
     }
 })
 $('#canvas_background').on('mousedown','.line',function (event) {
@@ -328,6 +352,7 @@ $('#canvas_background').on('mousedown','.line',function (event) {
     if(event.button == 2){   //mouse right
         line_map[$(this).attr('id')] = 0;
         $(this).remove();
+        log('删除线段'+$(this).attr('id'));
     }
 })
 function judgePoint(mouse_left,mouse_top){
@@ -430,4 +455,8 @@ function log(msg,flag){
     else
         $('#console').append('<div><span style="color:#00DB00;font-size: 13px;">success: </span>'+msg+'</div>');
     $('#console').scrollTop( $('#console')[0].scrollHeight );
+}
+function checkNumber(str){
+    var reg=/^[0-9]*$/;
+    return(reg.test(str.toString()));
 }
