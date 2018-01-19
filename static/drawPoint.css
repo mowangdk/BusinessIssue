@@ -1,6 +1,6 @@
 
 .header_box {
-    margin-top: 40px;
+    margin-top: 20px;
     text-align: center;
 }
 .header_box input{
@@ -34,7 +34,7 @@
 }
 .funs{
     width:1300px;
-    margin: 40px auto;
+    margin: 40px auto 0;
 }
 .instruction{
     display: inline-block;

@@ -115,6 +115,7 @@ $('#selector').change(function(){
 $('#size_btn').on('click',function(){
     var rows = parseInt($('#grid_rows').val());
     var cols = parseInt($('#grid_cols').val());
+    isEdit = true;
     drawGrid(rows,cols);
 })
 $('#reset_btn').on('click',function(){
@@ -151,7 +152,9 @@ $('#excute_btn').on('click',function (evt) {
         console.log(data);
         var rout_id = 0;
         if(data.status == 0){
-            $('#size_btn').click();
+            var rows = parseInt($('#grid_rows').val());
+            var cols = parseInt($('#grid_cols').val());
+            drawGrid(rows,cols);
             var restriction = data.restriction;
             for(var i in restriction){
                 var line = restriction[i];
