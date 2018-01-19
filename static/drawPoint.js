@@ -56,6 +56,7 @@ function init(){
     $('#canvas_background').find('.point').remove();
     $('#canvas_background').find('.grid_line').remove();
     $('#canvas_background').find('.y_line').remove();
+    $('#canvas_background').find('.short_value').remove();
 }
 drawGrid(9,9); //初始化 9*9
 function drawGrid(rows,cols){
@@ -159,12 +160,13 @@ $('#excute_btn').on('click',function (evt) {
     console.log(JSON.stringify(postData));
     $.window.http.post('/acquire_route',postData,function(data){
         console.log(data);
-        $('#canvas_background').append('<div class="short_value">最短路径长度为：'+data.shortest_distance +'</div>');
+
         var rout_id = 0;
         if(data.status == 0){
             var rows = parseInt($('#grid_rows').val());
             var cols = parseInt($('#grid_cols').val());
             drawGrid(rows,cols);
+            $('#canvas_background').append('<div class="short_value">最短路径长度为：'+data.shortest_distance +'</div>');
             var restriction = data.restriction;
             for(var i in restriction){
                 var line = restriction[i];
