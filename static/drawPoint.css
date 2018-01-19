@@ -1,0 +1,206 @@
+
+.header_box {
+    margin-top: 40px;
+    text-align: center;
+}
+.header_box input{
+    width:60px;
+    height:30px;
+    border: 1px solid #666;
+    margin-left: 8px;
+}
+.header_box span{
+    margin-left: 8px;
+}
+.header_box select{
+    width:60px;
+    height:30px;
+    margin-left: 8px;
+    color:#444;
+    font-size: 16px;
+}
+.header_box button{
+    width:60px;
+    height:30px;
+    margin-left: 8px;
+    color:#fff;
+    border-radius: 4px;
+    background-color: #444;
+    border: 0;
+    cursor: pointer;
+}
+.header_box button:hover,.footer_box button:hover{
+    background-color: #000;
+}
+.funs{
+    width:1300px;
+    margin: 40px auto;
+}
+.instruction{
+    display: inline-block;
+    vertical-align: top;
+    width:210px;
+}
+.sub_instruction{
+    margin-top: 10px;
+    color:#777;
+    font-size: 13px;
+    line-height: 20px;
+}
+.canvas_background{
+    display: inline-block;
+    vertical-align: top;
+    width:660px;
+    height:660px;
+    position: relative;
+    background-color: #333;
+}
+.footer_box{
+    margin-top: 20px;
+    text-align: center;
+}
+.footer_box button{
+    width:80px;
+    height:30px;
+    margin-left: 8px;
+    color:#fff;
+    border-radius: 4px;
+    background-color: #444;
+    border: 0;
+    cursor: pointer;
+}
+.number{
+    width:9px;
+    height:9px;
+    color:#fff;
+    position: absolute;
+    z-index: 1009;
+    left:0;
+    top:0;
+    font-size: 12px;
+}
+.grid_line{
+    position: absolute;
+    background-color:#999;
+    left:0;
+    top:0px;
+    width:1px;
+    height: 1px;
+    z-index: 888;
+}
+.point{
+    position: absolute;
+    left:0;
+    top:0;
+    width:11px;
+    height:11px;
+    background-color: #ff0000;
+    border-radius: 9px;
+    cursor: pointer;
+    display:block;
+    z-index: 1003;
+}
+.point:hover{
+    width:13px;
+    height:13px;
+    box-shadow: 0 0 15px #FF2D2D;
+}
+.temp_line,.line,.y_line{
+    position: absolute;
+    left:0;
+    top:0;
+    background-color: #ff0000;
+    width:0px;
+    height:0px;
+    border: 1px solid #ff0000;
+    transform-origin:0% 0%;/*定义动画的旋转中心点*/
+    cursor: pointer;
+    z-index:2005;
+}
+.temp_line:hover,.line:hover{
+    border: 1.5px solid #ff0000;
+    box-shadow: 0 0 20px #ff0000;
+
+}
+.y_line{
+    background-color: #ffff00;
+    border: 1px solid #ffff00;
+    z-index: 2004;
+}
+.y_line:hover{
+    border: 1.5px solid #ffff00;
+    box-shadow: 0 0 20px #ffff00;
+}
+.dialog_ex{
+    position: fixed;
+    width:100%;
+    height:100%;
+    z-index: 10001;
+    top:0;
+    left:0;
+    display: none;
+    background-color: rgba(0,0,0,0.7);
+}
+.dialog_content{
+    width:400px;
+    height:260px;
+    background-color: #fff;
+    margin: 150px auto;
+    text-align: center;
+    line-height: 260px;
+    font-size: 15px;
+    color:#555;
+}
+
+.export_image_ex{
+    position: fixed;
+    width:100%;
+    height:100%;
+    z-index: 10001;
+    top:0;
+    left:0;
+    display: none;
+    background-color: rgb(255,255,255);
+    text-align: center;
+}
+.export_content{
+    display: inline-block;
+    margin: 70px auto 0;
+}
+.download_btn{
+    display: inline-block;
+    margin-top: 30px;
+    width:150px;
+    height:40px;
+    line-height: 40px;
+    color:#fff;
+    border-radius: 4px;
+    background-color: #444;
+    cursor: pointer;
+    text-decoration: none;
+}
+.download_btn:hover{
+    background-color: #000;
+}
+.log{
+    display: inline-block;
+    vertical-align: top;
+    width:250px;
+    height:660px;
+    margin-top: -30px;
+    margin-left: 20px;
+}
+.log_title{
+    height:30px;
+    color:#444;
+    line-height: 30px;
+}
+.console{
+    border:1px solid #333;
+    background-color: #222;
+    overflow-y: auto;
+    height:638px;
+    color:#fff;
+    font-size: 12px;
+    padding: 10px;
+}
