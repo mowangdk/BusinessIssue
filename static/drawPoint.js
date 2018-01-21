@@ -136,6 +136,10 @@ $('#reset_btn').on('click',function(){
     $('#size_btn').click();
 })
 $('#excute_btn').on('click',function (evt) {
+    if(!isEdit){
+        log('请重置','error');
+        return;
+    }
     var m_points = [];
     var k = 0;
     for(var i in points_list){
@@ -153,6 +157,10 @@ $('#excute_btn').on('click',function (evt) {
         if(line_map[_id] == 1 )
             m_lines[k++] = [start,end];
     }
+    if(m_points.length<3){
+        log('点数不能小于3','error');
+        return;
+    }
 
     var postData={
         'points':JSON.stringify(m_points),
@@ -166,12 +174,117 @@ $('#excute_btn').on('click',function (evt) {
 
         var rout_id = 0;
         if(data.status == 0){
+            console.log('开始绘画');
             var rows = parseInt($('#grid_rows').val());
             var cols = parseInt($('#grid_cols').val());
             drawGrid(rows,cols);
             $('#canvas_background').append('<div class="short_value">最短路径长度为：'+data.shortest_distance +'</div>');
             var restriction = data.restriction;
             for(var i in restriction){
+                var line = restriction[i];
+                var start = line[0];
+                var end = line[1];
+                var start_left;
+                var start_top;
+                var end_left;
+                var end_top;
+                for(var j in points_list){
+                    var pos = points_list[j];
+                    if(start[0] == pos.x && start[1] == pos.y){
+                        start_left = pos.left;
+                        start_top = pos.top;
+                    }
+                    if(end[0] == pos.x && end[1] == pos.y){
+                        end_left = pos.left;
+                        end_top = pos.top;
+                    }
+                }
+                $('#canvas_background').append('<div class="line" id="fal_'+rout_id+'"></div>');
+                drawLineEx($('#fal_'+rout_id),start_left,start_top,end_left,end_top);
+                rout_id++;
+            }
+            var route = data.route;
+            var final_routs = [];
+            for(var i=0;i<route.length-1;i++){
+
+                var dot = route[i];
+                var pos_left;
+                var pos_top;
+                for(var j in points_list){
+                    var pos = points_list[j];
+                    if(dot[0] == pos.x && dot[1] == pos.y){
+                        pos_left = pos.left;
+                        pos_top = pos.top;
+                    }
+                }
+                final_routs.push({'left':pos_left,'top':pos_top});
+                $('#canvas_background').append('<div class="point" id="fal_'+rout_id+'"><div class="point_number">'+(parseInt(i)+1)+'</div></div>');
+                drawPointEx($('#fal_'+rout_id),pos_left,pos_top);
+                rout_id++;
+            }
+            final_routs.push(final_routs[0]);
+            for(var i=1; i < final_routs.length ;i++){
+                var start = final_routs[i-1];
+                var end = final_routs[i];
+                $('#canvas_background').append('<div class="y_line" id="fal_'+rout_id+'"></div>');
+                drawLineEx($('#fal_'+rout_id),start.left,start.top,end.left,end.top);
+                rout_id++;
+            }
+            //$('#canvas_background').attr('disabled','false');
+            //$('#canvas_background').removeAttr("disabled"); //移除disabled属性
+            isEdit = false;
+        }
+        else{
+            log(data.msg,'error');
+        }
+    })
+})
+$('#excute_path_btn').on('click',function (evt) {
+    if(!isEdit){
+        log('请重置','error');
+        return;
+    }
+    var m_points = [];
+    var k = 0;
+    for(var i in points_list){
+        var _id = points_list[i].x + '_' + points_list[i].y;
+        if( map[_id] == 1)
+            m_points[k++] = [points_list[i].x,points_list[i].y];
+    }
+    var m_lines = [];
+    k=0;
+    for(var i in lines_list){
+
+        var start = [lines_list[i].start.x,lines_list[i].start.y];
+        var end = [lines_list[i].end.x,lines_list[i].end.y];
+        var _id = lines_list[i].start.x + '_' + lines_list[i].start.y + '_' + lines_list[i].end.x + '_' + lines_list[i].end.y;
+        if(line_map[_id] == 1 )
+            m_lines[k++] = [start,end];
+    }
+    if(m_points.length<3){
+        log('点数不能小于3','error');
+        return;
+    }
+
+    var postData={
+        'points':JSON.stringify(m_points),
+        'd':$('#d_size').val(),
+        'unit':unit,
+        'restriction':JSON.stringify(m_lines)
+    }
+    console.log(JSON.stringify(postData));
+    $.window.http.post('/acquire_route_with_path',postData,function(data){
+        console.log(data);
+        var rout_id = 0;
+        if(data.status == 0){
+            console.log('开始绘画');
+            var rows = parseInt($('#grid_rows').val());
+            var cols = parseInt($('#grid_cols').val());
+            drawGrid(rows,cols);
+            $('#canvas_background').append('<div class="short_value">最短路径长度为：'+data.shortest_distance +'</div>');
+            var restriction = data.restriction;
+            for(var i in restriction){
+                //continue;
                 var line = restriction[i];
                 var start = line[0];
                 var end = line[1];
