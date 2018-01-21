@@ -4,7 +4,7 @@
 import json
 import logging
 from tornado.web import RequestHandler
-from tsp import tsp_dp
+from tsp import tsp_dp, tsp_dp_with_path
 from tornado.web import HTTPError
 
 
@@ -27,6 +27,28 @@ class CalculateHandler(RequestHandler):
         except ValueError:
             status = 1
             msg = 'No available routes because too many restrictions!'
+            shortest_distance = 0
+            route = []
+        shortest_distance = '%.2f' % (shortest_distance) + ' ' + unit
+        data = dict(shortest_distance=shortest_distance, route=route, restriction=restriction, status=status, msg=msg)
+        self.write(data)
+        self.finish()
+
+
+class CalculateHandlerWithPath(RequestHandler):
+    def post(self):
+        points = json.loads(self.get_argument('points'))
+        d = int(self.get_argument('d'))
+        unit = self.get_argument('unit')
+        restriction = json.loads(self.get_argument('restriction', '[]'))
+        logging.info('got paths: %s' % restriction)
+        status = 0
+        msg = ''
+        try:
+            shortest_distance, route = tsp_dp_with_path(points, d, restriction)
+        except ValueError:
+            status = 1
+            msg = 'No available routes because too less paths!'
             shortest_distance = 0
             route = []
         shortest_distance = '%.2f' % (shortest_distance) + ' ' + unit

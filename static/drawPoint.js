@@ -161,7 +161,7 @@ $('#excute_btn').on('click',function (evt) {
         'restriction':JSON.stringify(m_lines)
     }
     console.log(JSON.stringify(postData));
-    $.window.http.post('/acquire_route',postData,function(data){
+    $.window.http.post('/acquire_route_with_path',postData,function(data){
         console.log(data);
 
         var rout_id = 0;
