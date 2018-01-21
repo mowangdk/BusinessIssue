@@ -1,0 +1,52 @@
+<html>
+<head>
+    <title>旅行商问题</title>
+    <link rel="stylesheet" href="../static/drawPoint.css">
+    <style></style>
+</head>
+<body>
+<div class="rect" id="rect"></div>
+<div class="header_box">
+    <span>网格大小：</span><input type="text" id="grid_rows" value="9"><span>行</span><input type="text" id="grid_cols" value="9"><span>列</span>
+    <span>单位长度:</span><input type="text" value="60" id="d_size">
+    <select id="selector">
+        <option>cm</option>
+        <option>m</option>
+    </select>
+    <button id="size_btn">确定</button>
+</div>
+<div class="funs">
+    <div class="instruction">
+        <div>操作说明:</div>
+        <div class="sub_instruction">
+        1.画点：<br/>鼠标左键点击<br/>
+        2.画线：<br/>鼠标左键按下已经存在的点，然后拖动到另一个存在的点<br/>
+        3.删除：<br/>鼠标右键点击点或者线段，可以删除<br/>
+        </div>
+    </div>
+    <div class="canvas_background" id="canvas_background" ondragstart="return false" oncontextmenu="doNothing()">
+        <div id="temp_line" class="temp_line"></div>
+    </div>
+    <div class="log" id="log">
+        <div id="log_title" class="log_title">控制台</div>
+        <div id="console" class="console"></div>
+    </div>
+</div>
+<div class="footer_box">
+    <button id="reset_btn">重置</button>
+    <button id="excute_btn">计算</button>
+    <button id="export_btn">导出</button>
+</div>
+<div class="export_image_ex" id="export_image_ex">
+    <div class="export_content" id="export_content"></div><br/>
+    <a class="download_btn" id="download_btn">下载图片(*.png)</a>
+</div>
+<div class="dialog_ex" id="dialog_ex">
+    <div class="dialog_content"></div>
+</div>
+</body>
+<script src="../static/jquery-1.8.3.min.js"></script>
+<script src="../static/ui_frame.js"></script>
+<script src="../static/html2canvas.min.js"></script>
+<script src="../static/drawPointWithPath.js"></script>
+</html>

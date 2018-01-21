@@ -13,6 +13,11 @@ class BaseHandler(RequestHandler):
         self.render('drawPoints.html')
 
 
+class BaseHandlerWithPath(RequestHandler):
+    def get(self):
+        self.render('drawPointsWithPath.html')
+
+
 class CalculateHandler(RequestHandler):
     def post(self):
         points = json.loads(self.get_argument('points'))
