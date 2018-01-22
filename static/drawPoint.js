@@ -53,11 +53,10 @@ function init(){
     start_point = null;
     end_point = null;
     $('#canvas_background').find('.number').remove();
-    $('#canvas_background').find('.line').remove();
-    $('#canvas_background').find('.point').remove();
     $('#canvas_background').find('.grid_line').remove();
-    $('#canvas_background').find('.y_line').remove();
-    $('#canvas_background').find('.short_value').remove();
+    $('#canvas_background').find('.short_value').remove(); //最短路title
+    $('#canvas_background').find('.point').remove();
+    $('#canvas_background').find('.line').remove();
 }
 drawGrid(9,9); //初始化 9*9
 function drawGrid(rows,cols){
@@ -118,11 +117,11 @@ $('#size_btn').on('click',function(){
     var rows = parseInt($('#grid_rows').val());
     var cols = parseInt($('#grid_cols').val());
     if(!checkNumber(rows) || !checkNumber(cols)){
-        log('行数和列数必须为数字','error');
+        log('行数和列数必须为数字','warning');
         return;
     }
     if(rows>30 || cols>30 || rows<3 || cols<3){
-        log('行数和列数范围是 [3,30]','error');
+        log('行数和列数范围是 [3,30]','warning');
         return;
     }
 
@@ -135,113 +134,27 @@ $('#reset_btn').on('click',function(){
     clearLog();
     $('#size_btn').click();
 })
+$('#back_edit_btn').on('click',function(){
+    if(isEdit){
+        log('已经处于编辑状态','warning');
+    }
+    $('#canvas_background').find('.res_point').remove();
+    $('#canvas_background').find('.res_r_line').remove();
+    $('#canvas_background').find('.res_y_line').remove();
+    $('#canvas_background').find('.point').css('display','block');
+    $('#canvas_background').find('.line').css('display','block');
+    isEdit = true;
+})
 $('#excute_btn').on('click',function (evt) {
-    if(!isEdit){
-        log('请重置','error');
-        return;
-    }
-    var m_points = [];
-    var k = 0;
-    for(var i in points_list){
-        var _id = points_list[i].x + '_' + points_list[i].y;
-        if( map[_id] == 1)
-            m_points[k++] = [points_list[i].x,points_list[i].y];
-    }
-    var m_lines = [];
-    k=0;
-    for(var i in lines_list){
-
-        var start = [lines_list[i].start.x,lines_list[i].start.y];
-        var end = [lines_list[i].end.x,lines_list[i].end.y];
-        var _id = lines_list[i].start.x + '_' + lines_list[i].start.y + '_' + lines_list[i].end.x + '_' + lines_list[i].end.y;
-        if(line_map[_id] == 1 )
-            m_lines[k++] = [start,end];
-    }
-    if(m_points.length<3){
-        log('点数不能小于3','error');
-        return;
-    }
-
-    var postData={
-        'points':JSON.stringify(m_points),
-        'd':$('#d_size').val(),
-        'unit':unit,
-        'restriction':JSON.stringify(m_lines)
-    }
-    console.log(JSON.stringify(postData));
-    $.window.http.post('/acquire_route',postData,function(data){
-        console.log(data);
-
-        var rout_id = 0;
-        if(data.status == 0){
-            console.log('开始绘画');
-            var rows = parseInt($('#grid_rows').val());
-            var cols = parseInt($('#grid_cols').val());
-            drawGrid(rows,cols);
-            $('#canvas_background').append('<div class="short_value">最短路径长度为：'+data.shortest_distance +'</div>');
-            var restriction = data.restriction;
-            for(var i in restriction){
-                var line = restriction[i];
-                var start = line[0];
-                var end = line[1];
-                var start_left;
-                var start_top;
-                var end_left;
-                var end_top;
-                for(var j in points_list){
-                    var pos = points_list[j];
-                    if(start[0] == pos.x && start[1] == pos.y){
-                        start_left = pos.left;
-                        start_top = pos.top;
-                    }
-                    if(end[0] == pos.x && end[1] == pos.y){
-                        end_left = pos.left;
-                        end_top = pos.top;
-                    }
-                }
-                $('#canvas_background').append('<div class="line" id="fal_'+rout_id+'"></div>');
-                drawLineEx($('#fal_'+rout_id),start_left,start_top,end_left,end_top);
-                rout_id++;
-            }
-            var route = data.route;
-            var final_routs = [];
-            for(var i=0;i<route.length-1;i++){
-
-                var dot = route[i];
-                var pos_left;
-                var pos_top;
-                for(var j in points_list){
-                    var pos = points_list[j];
-                    if(dot[0] == pos.x && dot[1] == pos.y){
-                        pos_left = pos.left;
-                        pos_top = pos.top;
-                    }
-                }
-                final_routs.push({'left':pos_left,'top':pos_top});
-                $('#canvas_background').append('<div class="point" id="fal_'+rout_id+'"><div class="point_number">'+(parseInt(i)+1)+'</div></div>');
-                drawPointEx($('#fal_'+rout_id),pos_left,pos_top);
-                rout_id++;
-            }
-            final_routs.push(final_routs[0]);
-            for(var i=1; i < final_routs.length ;i++){
-                var start = final_routs[i-1];
-                var end = final_routs[i];
-                $('#canvas_background').append('<div class="y_line" id="fal_'+rout_id+'"></div>');
-                drawLineEx($('#fal_'+rout_id),start.left,start.top,end.left,end.top);
-                rout_id++;
-            }
-            //$('#canvas_background').attr('disabled','false');
-            //$('#canvas_background').removeAttr("disabled"); //移除disabled属性
-            isEdit = false;
-        }
-        else{
-            log(data.msg,'error');
-        }
-    })
+    clickEvent('/acquire_route');
 })
+
 $('#excute_path_btn').on('click',function (evt) {
+    clickEvent('/acquire_route_with_path');
+})
+function clickEvent(route_path){
     if(!isEdit){
-        log('请重置','error');
+        log('请点击重置或者点击继续编辑按钮','warning');
         return;
     }
     var m_points = [];
@@ -262,7 +175,7 @@ $('#excute_path_btn').on('click',function (evt) {
             m_lines[k++] = [start,end];
     }
     if(m_points.length<3){
-        log('点数不能小于3','error');
+        log('点数不能小于3','warning');
         return;
     }
 
@@ -273,81 +186,86 @@ $('#excute_path_btn').on('click',function (evt) {
         'restriction':JSON.stringify(m_lines)
     }
     console.log(JSON.stringify(postData));
-    $.window.http.post('/acquire_route_with_path',postData,function(data){
+    $.window.http.post(route_path,postData,function(data){
         console.log(data);
-        var rout_id = 0;
         if(data.status == 0){
             console.log('开始绘画');
+            $('#canvas_background').find('.point').css('display','none');
+            $('#canvas_background').find('.line').css('display','none');
+
             var rows = parseInt($('#grid_rows').val());
             var cols = parseInt($('#grid_cols').val());
-            drawGrid(rows,cols);
+            //drawGrid(rows,cols);
             $('#canvas_background').append('<div class="short_value">最短路径长度为：'+data.shortest_distance +'</div>');
-            var restriction = data.restriction;
-            for(var i in restriction){
-                //continue;
-                var line = restriction[i];
-                var start = line[0];
-                var end = line[1];
-                var start_left;
-                var start_top;
-                var end_left;
-                var end_top;
-                for(var j in points_list){
-                    var pos = points_list[j];
-                    if(start[0] == pos.x && start[1] == pos.y){
-                        start_left = pos.left;
-                        start_top = pos.top;
-                    }
-                    if(end[0] == pos.x && end[1] == pos.y){
-                        end_left = pos.left;
-                        end_top = pos.top;
-                    }
-                }
-                $('#canvas_background').append('<div class="line" id="fal_'+rout_id+'"></div>');
-                drawLineEx($('#fal_'+rout_id),start_left,start_top,end_left,end_top);
-                rout_id++;
-            }
-            var route = data.route;
-            var final_routs = [];
-            for(var i=0;i<route.length-1;i++){
-
-                var dot = route[i];
-                var pos_left;
-                var pos_top;
-                for(var j in points_list){
-                    var pos = points_list[j];
-                    if(dot[0] == pos.x && dot[1] == pos.y){
-                        pos_left = pos.left;
-                        pos_top = pos.top;
-                    }
-                }
-                final_routs.push({'left':pos_left,'top':pos_top});
-                $('#canvas_background').append('<div class="point" id="fal_'+rout_id+'"><div class="point_number">'+(parseInt(i)+1)+'</div></div>');
-                drawPointEx($('#fal_'+rout_id),pos_left,pos_top);
-                rout_id++;
-            }
-            final_routs.push(final_routs[0]);
-            for(var i=1; i < final_routs.length ;i++){
-                var start = final_routs[i-1];
-                var end = final_routs[i];
-                $('#canvas_background').append('<div class="y_line" id="fal_'+rout_id+'"></div>');
-                drawLineEx($('#fal_'+rout_id),start.left,start.top,end.left,end.top);
-                rout_id++;
-            }
-            //$('#canvas_background').attr('disabled','false');
-            //$('#canvas_background').removeAttr("disabled"); //移除disabled属性
-            isEdit = false;
+            result_draw(data);
+            log('路径规划成功 '+data.msg);
         }
         else{
-            log(data.msg,'error');
+            log('路径规划失败 '+data.msg,'error');
         }
+        isEdit = false;
     })
-})
-
+}
+function result_draw(data){
+    var restriction = data.restriction;
+    var rout_id = 0;
+    //红色线段
+    for(var i in restriction){
+        var line = restriction[i];
+        var start = line[0];
+        var end = line[1];
+        var start_left;
+        var start_top;
+        var end_left;
+        var end_top;
+        for(var j in points_list){
+            var pos = points_list[j];
+            if(start[0] == pos.x && start[1] == pos.y){
+                start_left = pos.left;
+                start_top = pos.top;
+            }
+            if(end[0] == pos.x && end[1] == pos.y){
+                end_left = pos.left;
+                end_top = pos.top;
+            }
+        }
+        $('#canvas_background').append('<div class="res_r_line" id="fal_'+rout_id+'"></div>');
+        drawLineEx($('#fal_'+rout_id),start_left,start_top,end_left,end_top);
+        rout_id++;
+    }
+    var route = data.route;
+    var final_routs = [];
+    //红色结点
+    for(var i=0;i<route.length-1;i++){
+        var dot = route[i];
+        var pos_left;
+        var pos_top;
+        for(var j in points_list){
+            var pos = points_list[j];
+            if(dot[0] == pos.x && dot[1] == pos.y){
+                pos_left = pos.left;
+                pos_top = pos.top;
+            }
+        }
+        final_routs.push({'left':pos_left,'top':pos_top});
+        $('#canvas_background').append('<div class="res_point" id="fal_'+rout_id+'"><div class="point_number">'+(parseInt(i)+1)+'</div></div>');
+        drawPointEx($('#fal_'+rout_id),pos_left,pos_top);
+        rout_id++;
+    }
+    final_routs.push(final_routs[0]);
+    //黄色线段
+    for(var i=1; i < final_routs.length ;i++){
+        var start = final_routs[i-1];
+        var end = final_routs[i];
+        $('#canvas_background').append('<div class="res_y_line" id="fal_'+rout_id+'"></div>');
+        drawLineEx($('#fal_'+rout_id),start.left,start.top,end.left,end.top);
+        rout_id++;
+    }
+}
 
 $('#canvas_background').mousedown(function(event){
     if(!isEdit){
-        log('请重置','error');
+        log('请点击重置或者点击继续编辑按钮','warning');
         return;
     }
     if(event.button != 0){  //不是鼠标左键
@@ -368,7 +286,7 @@ $('#canvas_background').mousedown(function(event){
                 point_num++;
         }
         if(point_num>=20) {
-            log('不能超过20个点','error');
+            log('不能超过20个点','warning');
         }
         else{
             console.log(pos.x,pos.y);
@@ -420,7 +338,7 @@ $('#canvas_background').mouseup(function(event){
             }else{
                 if(line_map[_id] == 1 || line_map[_ids] == 1){
                     console.log('直线已经存在');
-                    log('直线已经存在','error');
+                    log('直线已经存在','warning');
                 }
                 else{
                     $('#canvas_background').append('<div id="'+_id+'" class="line"></div>');
@@ -448,7 +366,7 @@ $('#canvas_background').mouseup(function(event){
 })
 $('#canvas_background').on('mousedown','.point',function (event) {
     if(!isEdit){
-        log('请重置','error');
+        log('请点击重置或者点击继续编辑按钮','warning');
         event.stopPropagation();
         return;
     }
@@ -474,7 +392,7 @@ $('#canvas_background').on('mousedown','.point',function (event) {
 })
 $('#canvas_background').on('mousedown','.line',function (event) {
     if(!isEdit){
-        log('请重置','error');
+        log('请点击重置或者点击继续编辑按钮','warning');
         event.stopPropagation();
         return;
     }
@@ -582,7 +500,9 @@ function doNothing(){
     return false;
 }
 function log(msg,flag){
-    if(flag && flag == 'error')
+    if(flag && flag == 'warning')
+        $('#console').append('<div><span style="color:#ffff00;font-size: 13px;">warning: </span>'+msg+'</div>');
+    else if(flag && flag == 'error')
         $('#console').append('<div><span style="color:#ff0000;font-size: 13px;">warning: </span>'+msg+'</div>');
     else
         $('#console').append('<div><span style="color:#00DB00;font-size: 13px;">success: </span>'+msg+'</div>');
