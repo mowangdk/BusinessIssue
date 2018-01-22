@@ -26,9 +26,10 @@ class CalculateHandler(RequestHandler):
         restriction = json.loads(self.get_argument('restriction', '[]'))
         logging.info('got restrictions: %s' % restriction)
         status = 0
-        msg = ''
         try:
-            shortest_distance, route = tsp_dp(points, d, restriction)
+            shortest_distance, route, num_routes = tsp_dp(points, d, restriction)
+            msg = 'Num of routes is: %s' % num_routes
+            logging.info(msg)
         except ValueError:
             status = 1
             msg = 'No available routes because too many restrictions!'

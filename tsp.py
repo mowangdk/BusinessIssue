@@ -58,8 +58,11 @@ def tsp_dp(points, d, restriction):
     m = len(points)
     n = 2 ** (m-1)
     dp = [[float('inf')] * n for _ in range(m)]
+    num_routes = [[0] * n for _ in range(m)]
     for i in range(m):
         dp[i][0] = distances[i][0]
+        if distances[i][0] != float('inf'):
+            num_routes[i][0] = 1
     routes = [[0] * n for _ in range(m)]
     for j in range(1, n):
         for i in range(m):
@@ -69,9 +72,12 @@ def tsp_dp(points, d, restriction):
             for k in range(1, m):
                 if (j >> (k-1)) & 1 == 0:
                     continue
-                if distances[i][k] + dp[k][j ^ (1 << (k-1))] < dp[i][j]:
-                    dp[i][j] = distances[i][k] + dp[k][j ^ (1 << (k-1))]
+                rest = j ^ (1 << (k-1))
+                if distances[i][k] + dp[k][rest] < dp[i][j]:
+                    dp[i][j] = distances[i][k] + dp[k][rest]
                     routes[i][j] = k
+                if distances[i][k] != float("inf"):
+                    num_routes[i][j] += num_routes[k][rest]
     final_route = list()
     final_route.append(points[0])
     i = 0
@@ -80,7 +86,7 @@ def tsp_dp(points, d, restriction):
         final_route.append(points[routes[i][j]])
         i, j = routes[i][j], j ^ (1 << (routes[i][j]-1))
     final_route.append(points[0])
-    return dp[0][n-1] * d, final_route
+    return dp[0][n-1] * d, final_route, num_routes[0][n-1] / 2
 
 
 def tsp_dp_with_path(points, d, path):
