@@ -57,6 +57,9 @@ function init(){
     $('#canvas_background').find('.short_value').remove(); //最短路title
     $('#canvas_background').find('.point').remove();
     $('#canvas_background').find('.line').remove();
+    $('#canvas_background').find('.res_point').remove();
+    $('#canvas_background').find('.res_r_line').remove();
+    $('#canvas_background').find('.res_y_line').remove();
 }
 drawGrid(9,9); //初始化 9*9
 function drawGrid(rows,cols){
