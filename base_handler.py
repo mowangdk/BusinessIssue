@@ -49,9 +49,10 @@ class CalculateHandlerWithPath(RequestHandler):
         restriction = json.loads(self.get_argument('restriction', '[]'))
         logging.info('got paths: %s' % restriction)
         status = 0
-        msg = ''
         try:
-            shortest_distance, route = tsp_dp_with_path(points, d, restriction)
+            shortest_distance, route, num_routes = tsp_dp_with_path(points, d, restriction)
+            msg = 'Num of routes is: %s' % num_routes
+            logging.info(msg)
         except ValueError:
             status = 1
             msg = 'No available routes because too less paths!'
