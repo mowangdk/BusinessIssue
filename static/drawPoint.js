@@ -162,6 +162,7 @@ function clickEvent(route_path){
         log('请点击重置或者点击继续编辑按钮','warning');
         return;
     }
+    isEdit = false;
     var m_points = [];
     var k = 0;
     for(var i in points_list){
@@ -209,7 +210,6 @@ function clickEvent(route_path){
         else{
             log('路径规划失败 '+data.msg,'error');
         }
-        isEdit = false;
     })
 }
 function result_draw(data){
