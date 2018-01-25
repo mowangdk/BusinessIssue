@@ -54,12 +54,13 @@ function init(){
     end_point = null;
     $('#canvas_background').find('.number').remove();
     $('#canvas_background').find('.grid_line').remove();
-    $('#canvas_background').find('.short_value').remove(); //最短路title
+    //$('#canvas_background').find('.short_value').remove(); //最短路title
     $('#canvas_background').find('.point').remove();
     $('#canvas_background').find('.line').remove();
     $('#canvas_background').find('.res_point').remove();
     $('#canvas_background').find('.res_r_line').remove();
     $('#canvas_background').find('.res_y_line').remove();
+    $('#short_value').html('');
 }
 drawGrid(9,9); //初始化 9*9
 function drawGrid(rows,cols){
@@ -74,7 +75,7 @@ function drawGrid(rows,cols){
     pVal = val;
     var left = 30;
     var right = left+(cols-1)*val;
-    var top = 50;
+    var top = 60;
     var bottom = top+(rows-1)*val;
     for(var i=0;i<rows;i++){
         $('#canvas_background').append('<div class="grid_line" id="'+grid_id+'"></div>');
@@ -98,7 +99,7 @@ function drawGrid(rows,cols){
 }
 function drawGridPoints(rows,cols,val){
     var left = 30;
-    var top = 50;
+    var top = 60;
     for(var i=0;i<rows;i++)
     {
         for(var j=0;j<cols;j++){
@@ -147,6 +148,7 @@ $('#back_edit_btn').on('click',function(){
     $('#canvas_background').find('.point').css('display','block');
     $('#canvas_background').find('.line').css('display','block');
     isEdit = true;
+    $('#short_value').html('');
 })
 $('#excute_btn').on('click',function (evt) {
     clickEvent('/acquire_route');
@@ -199,7 +201,8 @@ function clickEvent(route_path){
             var rows = parseInt($('#grid_rows').val());
             var cols = parseInt($('#grid_cols').val());
             //drawGrid(rows,cols);
-            $('#canvas_background').append('<div class="short_value">最短路径长度为：'+data.shortest_distance +'</div>');
+            //$('#canvas_background').append('<div class="short_value">最短路径长度为：'+data.shortest_distance +'</div>');
+            $('#short_value').html('选手作答回路长度为：'+data.shortest_distance);
             result_draw(data);
             log('路径规划成功 '+data.msg);
         }

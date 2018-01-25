@@ -51,7 +51,7 @@
     display: inline-block;
     vertical-align: top;
     width:660px;
-    height:680px;
+    height:690px;
     position: relative;
     background-color: #333;
 }
@@ -254,11 +254,12 @@
 .short_value{
     position: absolute;
     left:0;
-    top:0;
+    top:8px;
     width:100%;
     height:30px;
     line-height: 30px;
     text-align: center;
-    color:#fff;
-    font-size: 16px;
+    color:#ffff00;
+    font-size: 28px;
+    z-index: 200;
 }
