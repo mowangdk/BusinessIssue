@@ -1,4 +1,4 @@
-
+console.log('ddraw point')
 var errorDialogEx = function (ele) {
     var self = this;
     self.showDialog = function(){

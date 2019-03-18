@@ -1,4 +1,4 @@
-
+console.log('with path')
 var errorDialogEx = function (ele) {
     var self = this;
     self.showDialog = function(){
@@ -142,6 +142,10 @@ $('#excute_btn').on('click',function (evt) {
         var _id = points_list[i].x + '_' + points_list[i].y;
         if( map[_id] == 1)
             m_points[k++] = [points_list[i].x,points_list[i].y];
+        else if(map[_id] >= 2){
+            m_points[k++] = [points_list[i].x,points_list[i].y];
+            m_points[k++] = [points_list[i].x,points_list[i].y];
+        }
     }
     var m_lines = [];
     k=0;
@@ -153,7 +157,7 @@ $('#excute_btn').on('click',function (evt) {
         if(line_map[_id] == 1 )
             m_lines[k++] = [start,end];
     }
-
+    console.log(m_points)
     var postData={
         'points':JSON.stringify(m_points),
         'd':$('#d_size').val(),
@@ -251,9 +255,10 @@ $('#canvas_background').mousedown(function(event){
         var point_num = 0;
         for(var i in points_list){
             var _id = points_list[i].x + '_' + points_list[i].y;
-            if( map[_id] == 1)
-                point_num++;
+            if( map[_id] )
+                point_num += map[_id];
         }
+        console.log('now total points is: '+ point_num)
         if(point_num>=20) {
             log('不能超过20个点','error');
         }
@@ -262,6 +267,11 @@ $('#canvas_background').mousedown(function(event){
             var _id = pos.x+'_'+ pos.y;
             if(pos.left <=0 || pos.top <=0){
                 return;
+            }
+            if(map[_id] && map[_id] > 1)
+            {
+                console.log('最多点两次')
+                return
             }
             $(this).append('<div id="'+_id+'" class="point"></div>');
             drawPointEx($('#'+_id),pos.left,pos.top);
@@ -295,15 +305,28 @@ $('#canvas_background').mouseup(function(event){
     var end_mouse_top = event.pageY - $('#canvas_background').offset().top;
     var result = judgePoint(end_mouse_left,end_mouse_top);
     var pos = result['pos'];
+    if(pos.left <=0 || pos.top <=0){
+        return;
+    }
     end_point = pos;
-
     if(drawing){
         if(result.status == true){
             var _id = start_point.x+'_'+start_point.y + '_' + end_point.x + '_' +end_point.y;
             var _ids = end_point.x + '_' +end_point.y + '_' + start_point.x+'_'+start_point.y; //反向路径
             if(start_point.x == end_point.x && start_point.y == end_point.y) //同一个点则为无效线段
             {
+                //console.log('同一点为无效线段，可当做加点')
 
+                var p_id = pos.x+'_'+ pos.y;
+                if(map[p_id] && map[p_id] == 1){
+                    map[p_id] ++
+                    //$(this).append('<div id="'+p_id+'" class="point"></div>');
+                    console.log(result)
+                    drawPointEx($('#'+p_id),pos.left,pos.top, true);
+                    console.log('添加第二个点')
+                }else if(map[p_id]==2){
+                    console.log('最多两个点')
+                }
             }else{
                 if(line_map[_id] == 1 || line_map[_ids] == 1){
                     console.log('直线已经存在');
@@ -348,15 +371,24 @@ $('#canvas_background').on('mousedown','.point',function (event) {
             var _id = _id1+'_'+_id2;
             console.log(_id1,_id2,_id);
             if($(this).attr('id') == _id1 || $(this).attr('id') == _id2){
-                line_map[_id] = 0;
-                $('#'+_id).remove();
+                if(map[$(this).attr('id')] == 1){  //当剩下一个点的时候，删除与其连通的线段
+                    line_map[_id] = 0;
+                    $('#'+_id).remove();
+                }
             }
         }
-        map[$(this).attr('id')] = 0;
-        $(this).remove();
+        if(map[$(this).attr('id')] >=2){
+            map[$(this).attr('id')] = 1;
+            $(this).css({'background-color':'#ff0000'})
+            console.log('删除点2-1')
+        }else if(map[$(this).attr('id')]==1){
+            map[$(this).attr('id')] = 0;
+            $(this).remove();
+        }
         var m_id = $(this).attr('id');
         var ps = m_id.split('_');
         log('删除点:( '+ ps[0] + ' , '+ps[1]+' )');
+        console.log('删除点:( '+ ps[0] + ' , '+ps[1]+' )');
     }
 })
 $('#canvas_background').on('mousedown','.line',function (event) {
@@ -383,7 +415,7 @@ function judgePoint(mouse_left,mouse_top){
         var pos = points_list[i];
         var _id = pos.x+'_'+pos.y;
         if(_left > pos.left-esp && _left < pos.left+esp && _top > pos.top-esp && _top < pos.top + esp){
-            if(map[_id] == 1){
+            if(map[_id] >= 1){
                 result['status'] = true;
                 result['id'] = _id;
             }else{
@@ -417,11 +449,18 @@ function drawNumberEx(ele,x1,y1){
         'top':y1+'px'
     })
 }
-function drawPointEx(ele,x1,y1){
+function drawPointEx(ele,x1,y1,color){
     ele.css({
         'left':(x1-6)+'px',
-        'top':(y1-6)+'px'
+        'top':(y1-6)+'px',
+        'z-index': '2007'
     })
+    if(color){
+        ele.css({
+            'background-color':'#00EE00',
+            'z-index': '2009'
+        })
+    }
 }
 function drawLineEx(ele,x1,y1,x2,y2){
     var radius = Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
