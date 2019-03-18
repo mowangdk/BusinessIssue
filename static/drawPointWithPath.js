@@ -136,6 +136,7 @@ $('#reset_btn').on('click',function(){
     $('#size_btn').click();
 })
 $('#excute_btn').on('click',function (evt) {
+    console.log('>>>',map)
     var m_points = [];
     var k = 0;
     for(var i in points_list){
@@ -165,9 +166,10 @@ $('#excute_btn').on('click',function (evt) {
         'restriction':JSON.stringify(m_lines)
     }
     console.log(JSON.stringify(postData));
+    var _map = map
     $.window.http.post('/acquire_route_with_path',postData,function(data){
         console.log(data);
-
+        console.log('>>>>>111',map)
         var rout_id = 0;
         if(data.status == 0){
             var rows = parseInt($('#grid_rows').val());
@@ -200,10 +202,12 @@ $('#excute_btn').on('click',function (evt) {
             }
             var route = data.route;
             var final_routs = [];
+            var num_map = {}
+            console.log('>>>222',_map)
             for(var i=0;i<route.length-1;i++){
 
                 var dot = route[i];
-                var pos_left;
+                var pos_left = -1;
                 var pos_top;
                 for(var j in points_list){
                     var pos = points_list[j];
@@ -212,9 +216,27 @@ $('#excute_btn').on('click',function (evt) {
                         pos_top = pos.top;
                     }
                 }
+                if(pos_left==-1)
+                    continue;
+                var p_id = dot[0]+'_'+dot[1];
+                console.log(pos_left,pos_top)
                 final_routs.push({'left':pos_left,'top':pos_top});
-                $('#canvas_background').append('<div class="point" id="fal_'+rout_id+'"><div class="point_number">'+(parseInt(i)+1)+'</div></div>');
-                drawPointEx($('#fal_'+rout_id),pos_left,pos_top);
+                if(!num_map[p_id]){
+                    num_map[p_id]=1
+                    //$('#canvas_background').append('<div class="res_point" id="fal_'+rout_id+'"><div class="point_number">'+(parseInt(i)+1)+'</div></div>');
+                    $('#canvas_background').append('<div class="point" id="fal_'+rout_id+'"><div class="point_number">'+(parseInt(i)+1)+'</div></div>');
+                }else if(num_map[p_id]==1){
+                    num_map[p_id]=2
+                   // $('#canvas_background').append('<div class="res_point" id="fal_'+rout_id+'"><div class="point_number" style="left:15px">'+(parseInt(i)+1)+'</div></div>');
+                    $('#canvas_background').append('<div class="point" id="fal_'+rout_id+'"><div class="point_number" style="left:15px">'+(parseInt(i)+1)+'</div></div>');
+                }
+                if(_map[p_id]==1){
+                    drawPointEx($('#fal_'+rout_id),pos_left,pos_top);
+                }else if(_map[p_id]>=1)
+                {
+                    drawPointEx($('#fal_'+rout_id),pos_left,pos_top,true);
+                }
+                //drawPointEx($('#fal_'+rout_id),pos_left,pos_top);
                 rout_id++;
             }
             final_routs.push(final_routs[0]);

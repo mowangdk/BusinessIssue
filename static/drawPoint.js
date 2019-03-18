@@ -169,7 +169,13 @@ function clickEvent(route_path){
         var _id = points_list[i].x + '_' + points_list[i].y;
         if( map[_id] == 1)
             m_points[k++] = [points_list[i].x,points_list[i].y];
+        if( map[_id] >= 2){
+            m_points[k++] = [points_list[i].x,points_list[i].y];
+            m_points[k++] = [points_list[i].x,points_list[i].y];
+        }
+
     }
+    console.log(m_points)
     var m_lines = [];
     k=0;
     for(var i in lines_list){
@@ -242,10 +248,12 @@ function result_draw(data){
     var route = data.route;
     var final_routs = [];
     //红色结点
+    console.log(route)
+    var num_map = {}
     for(var i=0;i<route.length-1;i++){
         var dot = route[i];
-        var pos_left;
-        var pos_top;
+        var pos_left = -1;
+        var pos_top = -1;
         for(var j in points_list){
             var pos = points_list[j];
             if(dot[0] == pos.x && dot[1] == pos.y){
@@ -253,9 +261,26 @@ function result_draw(data){
                 pos_top = pos.top;
             }
         }
+        if(pos_left==-1)
+            continue;
+        var p_id = dot[0]+'_'+dot[1];
+        console.log(pos_left,pos_top)
         final_routs.push({'left':pos_left,'top':pos_top});
-        $('#canvas_background').append('<div class="res_point" id="fal_'+rout_id+'"><div class="point_number">'+(parseInt(i)+1)+'</div></div>');
-        drawPointEx($('#fal_'+rout_id),pos_left,pos_top);
+        if(!num_map[p_id]){
+            num_map[p_id]=1
+            $('#canvas_background').append('<div class="res_point" id="fal_'+rout_id+'"><div class="point_number">'+(parseInt(i)+1)+'</div></div>');
+        }else if(num_map[p_id]==1){
+            num_map[p_id]=2
+            $('#canvas_background').append('<div class="res_point" id="fal_'+rout_id+'"><div class="point_number" style="left:15px">'+(parseInt(i)+1)+'</div></div>');
+        }
+
+        if(map[dot[0]+'_'+dot[1]]==1){
+            drawPointEx($('#fal_'+rout_id),pos_left,pos_top);
+        }else if(map[dot[0]+'_'+dot[1]]>=1)
+        {
+            drawPointEx($('#fal_'+rout_id),pos_left,pos_top,true);
+        }
+
         rout_id++;
     }
     final_routs.push(final_routs[0]);
@@ -300,6 +325,11 @@ $('#canvas_background').mousedown(function(event){
             if(pos.left <=0 || pos.top <=0){
                 return;
             }
+            if(map[_id] && map[_id] > 1)
+            {
+                console.log('最多点两次')
+                return
+            }
             $(this).append('<div id="'+_id+'" class="point"></div>');
             drawPointEx($('#'+_id),pos.left,pos.top);
             map[_id] = 1;
@@ -340,7 +370,18 @@ $('#canvas_background').mouseup(function(event){
             var _ids = end_point.x + '_' +end_point.y + '_' + start_point.x+'_'+start_point.y; //反向路径
             if(start_point.x == end_point.x && start_point.y == end_point.y) //同一个点则为无效线段
             {
+                //console.log('同一点为无效线段，可当做加点')
 
+                var p_id = pos.x+'_'+ pos.y;
+                if(map[p_id] && map[p_id] == 1){
+                    map[p_id] ++
+                    //$(this).append('<div id="'+p_id+'" class="point"></div>');
+                    console.log(result)
+                    drawPointEx($('#'+p_id),pos.left,pos.top, true);
+                    console.log('添加第二个点')
+                }else if(map[p_id]==2){
+                    console.log('最多两个点')
+                }
             }else{
                 if(line_map[_id] == 1 || line_map[_ids] == 1){
                     console.log('直线已经存在');
@@ -385,12 +426,20 @@ $('#canvas_background').on('mousedown','.point',function (event) {
             var _id = _id1+'_'+_id2;
             console.log(_id1,_id2,_id);
             if($(this).attr('id') == _id1 || $(this).attr('id') == _id2){
-                line_map[_id] = 0;
-                $('#'+_id).remove();
+                if(map[$(this).attr('id')] == 1){  //当剩下一个点的时候，删除与其连通的线段
+                    line_map[_id] = 0;
+                    $('#'+_id).remove();
+                }
             }
         }
-        map[$(this).attr('id')] = 0;
-        $(this).remove();
+        if(map[$(this).attr('id')] >=2){
+            map[$(this).attr('id')] = 1;
+            $(this).css({'background-color':'#ff0000'})
+            console.log('删除点2-1')
+        }else if(map[$(this).attr('id')]==1){
+            map[$(this).attr('id')] = 0;
+            $(this).remove();
+        }
         var m_id = $(this).attr('id');
         var ps = m_id.split('_');
         log('删除点:( '+ ps[0] + ' , '+ps[1]+' )');
@@ -420,7 +469,7 @@ function judgePoint(mouse_left,mouse_top){
         var pos = points_list[i];
         var _id = pos.x+'_'+pos.y;
         if(_left > pos.left-esp && _left < pos.left+esp && _top > pos.top-esp && _top < pos.top + esp){
-            if(map[_id] == 1){
+            if(map[_id] >= 1){
                 result['status'] = true;
                 result['id'] = _id;
             }else{
@@ -454,11 +503,19 @@ function drawNumberEx(ele,x1,y1){
         'top':y1+'px'
     })
 }
-function drawPointEx(ele,x1,y1){
+function drawPointEx(ele,x1,y1,color){
+
     ele.css({
         'left':(x1-6)+'px',
-        'top':(y1-6)+'px'
+        'top':(y1-6)+'px',
+        'z-index': '2007'
     })
+    if(color){
+        ele.css({
+            'background-color':'#00EE00',
+            'z-index': '2009'
+        })
+    }
 }
 function drawLineEx(ele,x1,y1,x2,y2){
     var radius = Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
