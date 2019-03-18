@@ -8,7 +8,8 @@ import logging
 
 
 def distance(point, other):
-    return math.sqrt((point[0] - other[0]) ** 2 + (point[1] - other[1]) ** 2)
+    ret = math.sqrt((point[0] - other[0]) ** 2 + (point[1] - other[1]) ** 2)
+    return ret or float('inf')
 
 
 def parse_lines(lines, points):
