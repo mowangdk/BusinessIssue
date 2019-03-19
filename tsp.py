@@ -232,6 +232,8 @@ def Astar(points, distances, dd):
     if route is not None:
         route = [rd[i] for i in route]
         route.append(route[0])
+    else:
+        raise ValueError()
     return best*dd, route, count / 2
 
 
@@ -243,7 +245,8 @@ def tsp_dp(points, d, restriction):
 
 def tsp_dp_with_path(points, d, path):
     distances = get_distances_with_path(points, path)
-    return Astar(points, distances, d)
+    ret = Astar(points, distances, d)
+    return ret
 
 
 if __name__ == '__main__':
