@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 # @Time : 2018/1/10 下午7:20
 # @Author : Sui Chen
+import collections
 import math
+import itertools
+import time
+import heapq
 
 import logging
 
@@ -53,76 +57,103 @@ def get_distances_with_path(points, path):
     return distances
 
 
+def calculate(permu, distances):
+    ret = 0
+    for i in range(len(permu)):
+        ret += distances[permu[i]][permu[i-1]]
+    return ret
+
+
+def check(permu):
+    count = collections.Counter()
+    for i in range(len(permu)):
+        f = permu[i]
+        t = permu[i-1]
+        if f > t:
+            f, t = t, f
+        count[f, t] += 1
+    return max(count.values()) < 2
+
+
+def brute_force(points, distances, d):
+    n = len(points)
+    g = itertools.permutations(range(n))
+    count = 0
+    best = float('inf')
+    route = None
+    for permu in g:
+        dis = calculate(permu, distances)
+        poss = check(permu)
+        if poss and dis != float('inf'):
+            count += 1
+            if dis < best:
+                best = dis
+                route = permu
+    if route is None:
+        raise ValueError()
+    route = [points[i] for i in route]
+    route.append(route[0])
+    return best*d, route, count
+
+
+def build_vec(p1, p2):
+    if p1 > p2:
+        p1, p2 = p2, p1
+    return tuple(p1+p2)
+
+
+def Astar(points, distances, d):
+    n = len(points)
+    q = list()
+    g = [[] for _ in range(n)]
+    for i in range(n):
+        for j in range(i):
+            if distances[i][j] != float('inf'):
+                g[i].append(j)
+                g[j].append(i)
+    q.append((0, [0], ()))
+    count = 0
+    best = float('inf')
+    route = None
+    while q:
+        dis, path, vecs = q.pop()
+        if len(path) == len(points):
+            head = path[0]
+            tail = path[-1]
+            vec = build_vec(points[head], points[tail])
+            if vec not in vecs:
+                count += 1
+                if dis + distances[head][tail] < best:
+                    route = [points[i] for i in path]
+                    route.append(route[0])
+                    best = dis + distances[head][tail]
+        else:
+            for other in g[path[-1]]:
+                vec = build_vec(points[other], points[path[-1]])
+                if other not in path and vec not in vecs:
+                    q.append((dis + distances[path[-1]][other], path + [other], vecs + (vec,)))
+    if route is None:
+        raise ValueError()
+    return best*d, route, count / 2
+
+
 def tsp_dp(points, d, restriction):
+    t = time.time()
     distances = get_distances(points, restriction)
-    m = len(points)
-    n = 2 ** (m-1)
-    dp = [[float('inf')] * n for _ in range(m)]
-    num_routes = [[0] * n for _ in range(m)]
-    for i in range(m):
-        dp[i][0] = distances[i][0]
-        if distances[i][0] != float('inf'):
-            num_routes[i][0] = 1
-    routes = [[0] * n for _ in range(m)]
-    for j in range(1, n):
-        for i in range(m):
-            # already arrived in j
-            if i > 0 and (j >> (i-1)) & 1:
-                continue
-            for k in range(1, m):
-                if (j >> (k-1)) & 1 == 0:
-                    continue
-                rest = j ^ (1 << (k-1))
-                if distances[i][k] + dp[k][rest] < dp[i][j]:
-                    dp[i][j] = distances[i][k] + dp[k][rest]
-                    routes[i][j] = k
-                if distances[i][k] != float("inf"):
-                    num_routes[i][j] += num_routes[k][rest]
-    final_route = list()
-    final_route.append(points[0])
-    i = 0
-    j = n - 1
-    while len(final_route) < m:
-        final_route.append(points[routes[i][j]])
-        i, j = routes[i][j], j ^ (1 << (routes[i][j]-1))
-    final_route.append(points[0])
-    return dp[0][n-1] * d, final_route, num_routes[0][n-1] / 2
+    print 'dis calculate %s' % (time.time() - t)
+    t = time.time()
+    ret = Astar(points, distances, d)
+    print 'astar %s' % (time.time() - t)
+    t = time.time()
+    #retb = brute_force(points, distances, d)
+    retb = None
+    print 'brute force %s' % (time.time() - t)
+    return ret, retb
 
 
 def tsp_dp_with_path(points, d, path):
     distances = get_distances_with_path(points, path)
-    m = len(points)
-    n = 2 ** (m-1)
-    dp = [[float('inf')] * n for _ in range(m)]
-    num_routes = [[0] * n for _ in range(m)]
-    for i in range(m):
-        dp[i][0] = distances[i][0]
-        if distances[i][0] != float('inf'):
-            num_routes[i][0] = 1
-    routes = [[0] * n for _ in range(m)]
-    for j in range(1, n):
-        for i in range(m):
-            # already arrived in j
-            if i > 0 and (j >> (i-1)) & 1:
-                continue
-            for k in range(1, m):
-                if (j >> (k-1)) & 1 == 0:
-                    continue
-                rest = j ^ (1 << (k-1))
-                if distances[i][k] + dp[k][rest] < dp[i][j]:
-                    dp[i][j] = distances[i][k] + dp[k][rest]
-                    routes[i][j] = k
-                if distances[i][k] != float("inf"):
-                    num_routes[i][j] += num_routes[k][rest]
-    final_route = list()
-    final_route.append(points[0])
-    i = 0
-    j = n - 1
-    while len(final_route) < m:
-        final_route.append(points[routes[i][j]])
-        i, j = routes[i][j], j ^ (1 << (routes[i][j]-1))
-    final_route.append(points[0])
-    return dp[0][n-1] * d, final_route, num_routes[0][n-1] / 2
+    return brute_force(points, distances, d)
 
 
 def tsp_greedy(points, d):
@@ -153,3 +184,7 @@ def tsp_greedy(points, d):
             minimum = walked
             res_route = final_route
     return minimum * d, map(lambda x: points[x], res_route)
+
+
+if __name__ == '__main__':
+    print tsp_dp([[0,0],[0,1],[1,0],[1,1],[2,0],[2,1],[3,0],[3,1],[4,0],[4,1],[0,0]], 1, [])

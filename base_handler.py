@@ -24,19 +24,24 @@ class CalculateHandler(RequestHandler):
         d = int(self.get_argument('d'))
         unit = self.get_argument('unit')
         restriction = json.loads(self.get_argument('restriction', '[]'))
-        logging.info('got restrictions: %s' % restriction)
-        status = 0
-        try:
-            shortest_distance, route, num_routes = tsp_dp(points, d, restriction)
-            msg = 'Num of routes is: %s' % num_routes
-            logging.info(msg)
-        except ValueError:
-            status = 1
-            msg = 'No available routes because too many restrictions!'
-            shortest_distance = 0
-            route = []
-        shortest_distance = '%.2f' % (shortest_distance) + ' ' + unit
-        data = dict(shortest_distance=shortest_distance, route=route, restriction=restriction, status=status, msg=msg)
+        if len(points) > 11:
+            msg = 'Too many points'
+            data = dict(shortest_distance=0, route=[], restriction=restriction, status=1,
+                        msg=msg)
+        else:
+            logging.info('got restrictions: %s' % restriction)
+            status = 0
+            try:
+                shortest_distance, route, num_routes = tsp_dp(points, d, restriction)
+                msg = 'Num of routes is: %s' % num_routes
+                logging.info(msg)
+            except ValueError:
+                status = 1
+                msg = 'No available routes because too many restrictions!'
+                shortest_distance = 0
+                route = []
+            shortest_distance = '%.2f' % (shortest_distance) + ' ' + unit
+            data = dict(shortest_distance=shortest_distance, route=route, restriction=restriction, status=status, msg=msg)
         self.write(data)
         self.finish()
 
@@ -47,19 +52,24 @@ class CalculateHandlerWithPath(RequestHandler):
         d = int(self.get_argument('d'))
         unit = self.get_argument('unit')
         restriction = json.loads(self.get_argument('restriction', '[]'))
-        logging.info('got paths: %s' % restriction)
-        status = 0
-        try:
-            shortest_distance, route, num_routes = tsp_dp_with_path(points, d, restriction)
-            msg = 'Num of routes is: %s' % num_routes
-            logging.info(msg)
-        except ValueError:
-            status = 1
-            msg = 'No available routes because too less paths!'
-            shortest_distance = 0
-            route = []
-        shortest_distance = '%.2f' % (shortest_distance) + ' ' + unit
-        data = dict(shortest_distance=shortest_distance, route=route, restriction=restriction, status=status, msg=msg)
+        if len(points) > 11:
+            msg = 'Too many points'
+            data = dict(shortest_distance=0, route=[], restriction=restriction, status=1,
+                        msg=msg)
+        else:
+            logging.info('got paths: %s' % restriction)
+            status = 0
+            try:
+                shortest_distance, route, num_routes = tsp_dp_with_path(points, d, restriction)
+                msg = 'Num of routes is: %s' % num_routes
+                logging.info(msg)
+            except ValueError:
+                status = 1
+                msg = 'No available routes because too less paths!'
+                shortest_distance = 0
+                route = []
+            shortest_distance = '%.2f' % (shortest_distance) + ' ' + unit
+            data = dict(shortest_distance=shortest_distance, route=route, restriction=restriction, status=status, msg=msg)
         self.write(data)
         self.finish()
 
