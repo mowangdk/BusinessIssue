@@ -8,19 +8,18 @@ import logging
 
 
 def distance(point, other):
+    if point[0] == other[0] and point[1] == other[1]:
+        return float('inf')
     ret = math.sqrt((point[0] - other[0]) ** 2 + (point[1] - other[1]) ** 2)
-    return ret or float('inf')
+    return ret
 
 
 def parse_lines(lines, points):
-    index_dict = dict()
-    for index, point in enumerate(points):
-        index_dict[tuple(point)] = index
     new_lines = set()
     for single_restriction in lines:
         try:
-            i = index_dict[tuple(single_restriction[0])]
-            j = index_dict[tuple(single_restriction[1])]
+            i = tuple(single_restriction[0])
+            j = tuple(single_restriction[1])
             new_lines.add((i, j))
             new_lines.add((j, i))
         except KeyError:
@@ -34,7 +33,7 @@ def get_distances(points, restriction):
     restriction = parse_lines(restriction, points)
     for i in range(n):
         for j in range(n):
-            if i != j and (i, j) not in restriction:
+            if i != j and (tuple(points[i]), tuple(points[j])) not in restriction:
                 distances[i][j] = distance(points[i], points[j])
             else:
                 distances[i][j] = float('inf')
@@ -47,7 +46,7 @@ def get_distances_with_path(points, path):
     path = parse_lines(path, points)
     for i in range(n):
         for j in range(n):
-            if i != j and (i, j) in path:
+            if i != j and (tuple(points[i]), tuple(points[j])) in path:
                 distances[i][j] = distance(points[i], points[j])
             else:
                 distances[i][j] = float('inf')
